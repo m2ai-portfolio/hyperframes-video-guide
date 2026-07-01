@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HyperFrames Video Workflow — a working guide</title>
+<style>
+  :root{
+    --ink:#0e1116; --muted:#5b6572; --line:#e6e9ee; --bg:#f6f7f9; --card:#ffffff;
+    --gold:#b8860b; --good:#1a7f4b; --bad:#b23a48; --accent:#2f5fe0; --accent-soft:#eef2fe;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+  .wrap{max-width:860px;margin:0 auto;padding:32px 22px 80px}
+  header{padding:34px 0 22px;border-bottom:1px solid var(--line);margin-bottom:30px}
+  .kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  h1{font-size:34px;line-height:1.15;margin:.35em 0 .2em}
+  .sub{color:var(--muted);font-size:17px;max-width:62ch}
+  h2{font-size:22px;margin:38px 0 14px;padding-top:8px}
+  h3{font-size:16px;margin:0 0 6px}
+  p{margin:.5em 0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:14px 0;box-shadow:0 1px 2px rgba(16,22,30,.03)}
+  .lead{background:var(--accent-soft);border-color:#d7e0fb}
+  code{background:#eef0f3;padding:2px 6px;border-radius:5px;font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  pre{background:#0e1116;color:#e8edf4;padding:14px 16px;border-radius:10px;overflow:auto;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  pre .c{color:#7f8ea3}
+  ol.steps{list-style:none;counter-reset:s;padding:0;margin:0}
+  ol.steps>li{counter-increment:s;position:relative;padding:16px 0 16px 52px;border-bottom:1px solid var(--line)}
+  ol.steps>li:last-child{border-bottom:0}
+  ol.steps>li::before{content:counter(s);position:absolute;left:0;top:14px;width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;display:grid;place-items:center;font-size:15px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+  .do,.dont{border-radius:12px;padding:14px 16px;border:1px solid var(--line);background:var(--card)}
+  .do{border-left:4px solid var(--good)} .dont{border-left:4px solid var(--bad)}
+  .tag{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+  .do .tag{color:var(--good)} .dont .tag{color:var(--bad)}
+  .voice{background:linear-gradient(180deg,#fffdf5,#fff);border-color:#efe3c0}
+  .pill{display:inline-block;background:#111;color:#f4d67a;border-radius:999px;padding:3px 12px;font-size:13px;font-weight:600;letter-spacing:.02em}
+  .muted{color:var(--muted)}
+  .callout{border-left:4px solid var(--gold);background:#fffdf5;padding:12px 16px;border-radius:8px;margin:14px 0}
+  footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+  .tl{font-size:15px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Video production, made repeatable</div>
+  <h1>How I make these videos with HyperFrames</h1>
+  <p class="sub">You asked whether there's a skill behind the videos. There is, and here it is: the workflow, the voice setup you shared, and the lessons I burned through a lot of renders to learn. Everything here works for your own products too.</p>
+</header>
+
+<div class="card lead">
+  <h3>The short version</h3>
+  <p class="tl">HyperFrames renders video <strong>from HTML</strong>. You write your scenes as styled, animated web pages, the tool turns them into a real MP4 with narration and captions. The magic is not one clever step, it is running the same quality checks on every change instead of eyeballing it once at the end.</p>
+</div>
+
+<h2>What it actually is</h2>
+<p>Think of each scene as a slide built in HTML and CSS, with a timeline that says when things move. HyperFrames plays that timeline back frame by frame in a headless browser and records it. Because it records deterministically, the scenes have to be reproducible: no live clocks, no randomness, no network calls mid-render. That constraint is what makes the output consistent every time.</p>
+
+<h2>The workflow, start to finish</h2>
+<div class="card">
+<ol class="steps">
+  <li><h3>Storyboard first</h3><p>Write a <code>SCRIPT.md</code>: one line of narration, one on-screen headline, and any screen-capture cue per scene. Skipping this is where projects drift.</p></li>
+  <li><h3>Record the narration early</h3><p>The voiceover drives all the timing, so make it first. This is where your ElevenLabs voice comes in (details below).</p></li>
+  <li><h3>Build the scenes in HTML</h3><p>One full-frame scene per beat, a caption strip, and the audio, each on its own track.</p></li>
+  <li><h3>Time everything to the voiceover</h3><p>Measure each narration clip, give each scene the clip length plus about 1.3 seconds of breathing room, and snap all the numbers to one decimal place.</p></li>
+  <li><h3>Run the three checks after every change</h3><p><code>lint</code>, <code>validate</code>, <code>inspect</code>. Zero errors before moving on. This is the single biggest quality lever.</p></li>
+  <li><h3>Add captions from the real audio</h3><p>Transcribe the rendered voiceover so the words on screen match the words spoken, exactly.</p></li>
+  <li><h3>Preview, then a human approves</h3><p>Open it in the Studio editor, watch it, tweak it. Never auto-render, that is the gate.</p></li>
+  <li><h3>Render and publish</h3><p>Draft quality while iterating, high quality to deliver, then publish for a shareable link. Large or 4K jobs can go to the cloud renderer.</p></li>
+</ol>
+</div>
+
+<h2>Your voice is already wired in</h2>
+<div class="card voice">
+  <p>You added me to your ElevenLabs and shared the voice <span class="pill">Dylan Platelle</span></p>
+  <p style="margin-top:10px">Voice ID: <code>wJ4U84X4t4rzenAmCmRG</code> &nbsp;·&nbsp; Model: <code>eleven_multilingual_v2</code></p>
+  <p class="muted" style="margin-top:6px">Good default settings: stability 0.5, similarity 0.75, style 0, speaker boost on. Clean the script before sending it to the voice: no em-dashes, and spell out abbreviations, because it reads the text literally.</p>
+  <div class="callout"><strong>One heads-up:</strong> that voice lives in <em>your</em> ElevenLabs workspace. When you make videos yourself, it just works with your own API key. If you want me to render narration in your voice from my side, send me a workspace API key for that account and I will drop it into the setup.</div>
+</div>
+
+<h2>The lessons that matter most</h2>
+<div class="grid">
+  <div class="do"><span class="tag">Do</span><h3>Let the voiceover set the pace</h3><p>Record narration, then fit the scenes to it. The result breathes.</p></div>
+  <div class="dont"><span class="tag">Don't</span><h3>Lock scene lengths first</h3><p>You end up trimming narration to fit and it sounds rushed and clipped.</p></div>
+
+  <div class="do"><span class="tag">Do</span><h3>Use a real music track</h3><p>A no-copyright track, looped and volume-normalized, with a soft crossfade at the loop point.</p></div>
+  <div class="dont"><span class="tag">Don't</span><h3>Fake a music bed</h3><p>Synthesized tones read as low rumble on real headphones. It fails the second someone listens properly.</p></div>
+
+  <div class="do"><span class="tag">Do</span><h3>Match captions to the audio</h3><p>Generate them from the actual recorded voiceover so the text matches word for word.</p></div>
+  <div class="dont"><span class="tag">Don't</span><h3>Paraphrase captions</h3><p>If the caption says one thing while the voice says another, viewers notice immediately.</p></div>
+
+  <div class="do"><span class="tag">Do</span><h3>Light text on dark labels</h3><p>Reads cleanly and passes the accessibility checker.</p></div>
+  <div class="dont"><span class="tag">Don't</span><h3>Trust a generator's counts</h3><p>Ask for 7 nodes and you may get 9. The image looks polished so the error hides. Count them against the brief before shipping.</p></div>
+</div>
+
+<h2>Getting started</h2>
+<p class="muted">You need Node 22+ and FFmpeg. Then:</p>
+<pre><span class="c"># scaffold a project (bundled skills come with it)</span>
+npx hyperframes init my-video
+
+<span class="c"># check your providers before generating audio</span>
+npx hyperframes auth status
+
+<span class="c"># after every change, the three gates</span>
+npx hyperframes lint
+npx hyperframes validate
+npx hyperframes inspect
+
+<span class="c"># preview for approval, then render</span>
+npx hyperframes preview
+npx hyperframes render --quality high --output out.mp4</pre>
+
+<p>I am also sending a companion <code>.md</code> file written for your Claude. Drop it in your project and your Claude will follow this exact workflow, including the gotchas, without you having to steer it each time.</p>
+
+<footer>
+  Prepared for Greg · HyperFrames video workflow · a practical brief, not a spec. Ping me with a product and we can storyboard the first one together.
+</footer>
+</div>
+</body>
+</html>
